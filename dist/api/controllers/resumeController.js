@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAllResumes = exports.deleteResume = exports.getResumeById = exports.getUserResumes = exports.saveResume = exports.checkDuplicateResume = void 0;
 const Resume_1 = __importDefault(require("../models/Resume"));
+const User_1 = __importDefault(require("../models/User"));
 // Check if a resume with the given hash already exists for this user
 const checkDuplicateResume = async (req, res) => {
     var _a;
@@ -30,25 +31,32 @@ const checkDuplicateResume = async (req, res) => {
 exports.checkDuplicateResume = checkDuplicateResume;
 // Save resume data to MongoDB
 const saveResume = async (req, res) => {
-    var _a;
+    var _a, _b;
     try {
-        const { filename, filelink, fileHash, analysis, vendor_id, vendor_name, userId // Add userId as a potential field in the request body
-         } = req.body;
-        // Try to get userId from request body if not in req.user (for bypass auth mode)
+        const { filename, filelink, fileHash, analysis, vendor_id, vendor_name, userId } = req.body;
         const userIdentifier = ((_a = req.user) === null || _a === void 0 ? void 0 : _a.uid) || userId;
-        if (!userIdentifier || !filename || !filelink || !fileHash || !analysis) {
-            return res.status(400).json({
-                error: 'Missing required fields',
-                details: {
-                    userId: !userIdentifier,
-                    filename: !filename,
-                    filelink: !filelink,
-                    fileHash: !fileHash,
-                    analysis: !analysis
-                }
-            });
+        if (!userIdentifier) {
+            return res.status(401).json({ error: 'User not authenticated' });
         }
-        // Check for duplicate
+        // Check if user exists in database
+        const user = await User_1.default.findOne({ uid: userIdentifier });
+        if (!user) {
+            // Create user if doesn't exist
+            try {
+                await User_1.default.create({
+                    uid: userIdentifier,
+                    email: ((_b = req.user) === null || _b === void 0 ? void 0 : _b.email) || '',
+                    role: 'user',
+                    created_at: new Date(),
+                    updated_at: new Date()
+                });
+            }
+            catch (createError) {
+                console.error('Error creating user record:', createError);
+                // Continue even if user creation fails
+            }
+        }
+        // Check for duplicate resume
         const existingResume = await Resume_1.default.findOne({
             user_id: userIdentifier,
             fileHash: fileHash

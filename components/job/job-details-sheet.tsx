@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { format } from "date-fns"
 import {
   Briefcase,
   Building,
@@ -13,7 +12,6 @@ import {
   CalendarIcon,
   ClockIcon,
   Globe,
-  Award,
   Bookmark,
   Share2,
   FileText,

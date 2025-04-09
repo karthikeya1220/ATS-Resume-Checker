@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChevronRight, Loader2, Users, Server, FileText, Building, Briefcase, Shield, RefreshCw } from "lucide-react"
@@ -55,7 +55,7 @@ export default function AdminPage() {
     }
   }, [isMobile]);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     if (!userProfile || userProfile.role !== 'admin' || isLoadingStats) {
       return;
     }
@@ -96,12 +96,6 @@ export default function AdminPage() {
           description: "Active user accounts",
           icon: <Users className="h-5 w-5 text-blue-500" />,
         },
-        // {
-        //   title: "API Status",
-        //   value: "Online",
-        //   description: "System operational",
-        //   icon: <Server className="h-5 w-5 text-green-500" />,
-        // },
         {
           title: "Total Resumes",
           value: resumeCount,
@@ -146,9 +140,9 @@ export default function AdminPage() {
     } finally {
       setIsLoadingStats(false);
     }
-  };
+  }, [userProfile, isLoadingStats, toast]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     if (!userProfile || userProfile.role !== 'admin' || isLoadingUsers) {
       return;
     }
@@ -165,7 +159,7 @@ export default function AdminPage() {
       })) : [];
       
       setUsers(formattedUsers);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching users:", error);
       toast({
         title: "Failed to load users",
@@ -176,7 +170,7 @@ export default function AdminPage() {
     } finally {
       setIsLoadingUsers(false);
     }
-  };
+  }, [userProfile, isLoadingUsers, toast]);
 
   useEffect(() => {
     if (!initialCheckRef.current && userProfile === null) {
@@ -193,7 +187,7 @@ export default function AdminPage() {
     if (activeTab === 'dashboard' && !dataLoaded && !isLoadingStats) {
       fetchStats();
     }
-  }, [activeTab, userProfile, dataLoaded, isLoadingStats]);
+  }, [activeTab, userProfile, dataLoaded, isLoadingStats, fetchStats]);
 
   useEffect(() => {
     if (userProfile?.role !== 'admin') return;
@@ -201,7 +195,7 @@ export default function AdminPage() {
     if (activeTab === 'users' && !isLoadingUsers && users.length === 0) {
       fetchUsers();
     }
-  }, [activeTab, userProfile, users.length, isLoadingUsers]);
+  }, [activeTab, userProfile, users.length, isLoadingUsers, fetchUsers]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -258,7 +252,7 @@ export default function AdminPage() {
                   </p>
                 </div>
               </div>
-            } 
+            }
             text=""
           >
             <div className="flex items-center space-x-2">

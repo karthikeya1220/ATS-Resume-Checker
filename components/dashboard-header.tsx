@@ -1,7 +1,7 @@
 import React from "react";
 
 interface DashboardHeaderProps {
-  heading: string;
+  heading: string | React.ReactNode;
   text?: string;
   children?: React.ReactNode;
 }

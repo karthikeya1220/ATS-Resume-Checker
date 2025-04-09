@@ -54,6 +54,17 @@ interface Profile {
   }
 }
 
+interface ResumeResponse {
+  _id: string
+  filename: string
+  filelink: string
+  uploaded_at?: string
+  created_at?: string
+  aiAnalysis?: string
+  analysis?: Analysis
+  companyFeedback?: string[]
+}
+
 export default function ProfilePage() {
   const params = useParams()
   const router = useRouter()
@@ -69,7 +80,7 @@ export default function ProfilePage() {
 
       try {
         // Fetch the specific resume by ID using the API client
-        const resumeData = await apiClient.resumes.getResume(params.filename as string) as any;
+        const resumeData = await apiClient.resumes.getResume(params.filename as string) as ResumeResponse
         
         if (resumeData) {
           // Convert timestamp or ISO string to a format compatible with ProfileHeader
@@ -79,9 +90,9 @@ export default function ProfilePage() {
           // If it's a string date, convert to timestamp
           if (typeof uploadTimestamp === 'string') {
             timestampSeconds = Math.floor(new Date(uploadTimestamp).getTime() / 1000);
-          } else if (uploadTimestamp.seconds) {
+          } else if (typeof uploadTimestamp === 'object' && uploadTimestamp && 'seconds' in uploadTimestamp) {
             // If it already has seconds property, use it directly
-            timestampSeconds = uploadTimestamp.seconds;
+            timestampSeconds = (uploadTimestamp as { seconds: number }).seconds;
           }
           
           const profileData: Profile = {
@@ -91,7 +102,7 @@ export default function ProfilePage() {
             uploaded_at: resumeData.uploaded_at || resumeData.created_at || new Date().toISOString(),
             aiAnalysis: resumeData.aiAnalysis,
             analysis: resumeData.analysis,
-            profile_summary: resumeData.analysis?.profile_summary || null,
+            profile_summary: resumeData.analysis?.profile_summary || undefined,
             companyFeedback: resumeData.companyFeedback,
             // Add uploadedAt property in the format expected by ProfileHeader
             uploadedAt: {

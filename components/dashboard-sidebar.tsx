@@ -12,7 +12,6 @@ import {
   User,
   Search,
   Settings,
-  LogOut,
   X,
   Upload,
   Briefcase,
@@ -43,7 +42,6 @@ export function DashboardSidebar({ isOpen, setIsOpen }: DashboardSidebarProps) {
   const pathname = usePathname()
   const [activeItem, setActiveItem] = useState("")
   const [isHovering, setIsHovering] = useState<string | null>(null)
-  const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
@@ -56,7 +54,6 @@ export function DashboardSidebar({ isOpen, setIsOpen }: DashboardSidebarProps) {
 
         if (userProfileDoc.exists()) {
           const userData = userProfileDoc.data() as UserProfile
-          setProfile(userData)
           setIsAdmin(userData.role === "admin")
         }
       } catch (error) {

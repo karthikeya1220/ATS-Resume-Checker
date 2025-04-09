@@ -99,6 +99,12 @@ declare const apiClient: {
         getResume: (id: string) => Promise<unknown>;
         deleteResume: (id: string) => Promise<unknown>;
         getAllForMatching: () => Promise<unknown>;
+        getResumeContent: (id: string) => Promise<{
+            data: ArrayBuffer;
+        }>;
+        downloadResume: (id: string) => Promise<{
+            data: ArrayBuffer;
+        }>;
     };
     vendors: {
         getAll: () => Promise<unknown>;
