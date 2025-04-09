@@ -21,7 +21,6 @@ import {
   ArrowRightToLine,
   Building,
   Shield,
-  Key,
 } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
 import { toast } from "@/components/ui/use-toast"
@@ -52,7 +51,6 @@ export function DashboardSidebar({ isOpen, setIsOpen }: DashboardSidebarProps) {
       if (!user) return
 
       try {
-        // Updated path to match your database structure
         const userProfileRef = doc(db, "users", user.uid, "userProfile", "data")
         const userProfileDoc = await getDoc(userProfileRef)
 
@@ -75,7 +73,6 @@ export function DashboardSidebar({ isOpen, setIsOpen }: DashboardSidebarProps) {
   }, [user])
 
   useEffect(() => {
-    // Map paths to navigation items
     if (pathname.includes("/upload-resume")) {
       setActiveItem("upload")
     } else if (pathname.includes("/profiles")) {
@@ -139,14 +136,6 @@ export function DashboardSidebar({ isOpen, setIsOpen }: DashboardSidebarProps) {
       href: "/admin",
       adminOnly: true,
     },
-    {
-      id: "admin-access",
-      label: "Admin Access",
-      icon: <Key className="w-5 h-5" />,
-      href: "/admin-access",
-      adminOnly: false,
-    },
-    // Add more admin-only navigation items here
   ]
 
   const secondaryNavItems = [
@@ -156,7 +145,6 @@ export function DashboardSidebar({ isOpen, setIsOpen }: DashboardSidebarProps) {
 
   return (
     <>
-      {/* Backdrop for mobile */}
       {isMobile && isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -175,7 +163,6 @@ export function DashboardSidebar({ isOpen, setIsOpen }: DashboardSidebarProps) {
         style={{ boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)" }}
       >
         <div className="flex flex-col h-full">
-          {/* Sidebar Header */}
           <div className="p-4 border-b border-primary/10 flex items-center justify-between">
             <div className="flex items-center min-w-0">
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mr-3 shadow-md flex-shrink-0">
@@ -186,7 +173,6 @@ export function DashboardSidebar({ isOpen, setIsOpen }: DashboardSidebarProps) {
               )}
             </div>
 
-            {/* Toggle button inside sidebar header - only for expanded mode */}
             {!isMobile && isOpen && (
               <motion.button
                 onClick={() => setIsOpen(!isOpen)}
@@ -211,7 +197,6 @@ export function DashboardSidebar({ isOpen, setIsOpen }: DashboardSidebarProps) {
             )}
           </div>
 
-          {/* Navigation */}
           <div className="flex-1 overflow-y-auto py-6 px-2">
             {(isOpen || isMobile) && (
               <div className="mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">Main</div>
@@ -249,7 +234,6 @@ export function DashboardSidebar({ isOpen, setIsOpen }: DashboardSidebarProps) {
                     )}
                   </Link>
 
-                  {/* Tooltip for collapsed mode */}
                   {!isOpen && !isMobile && isHovering === item.id && (
                     <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 bg-foreground text-background text-xs py-1 px-2 rounded shadow-lg z-50 whitespace-nowrap">
                       {item.label}
@@ -267,53 +251,54 @@ export function DashboardSidebar({ isOpen, setIsOpen }: DashboardSidebarProps) {
                   </div>
                 )}
                 <nav className="space-y-1 mb-8">
-                  {adminNavItems.map((item) => (
-                    <div
-                      key={item.id}
-                      onMouseEnter={() => setIsHovering(item.id)}
-                      onMouseLeave={() => setIsHovering(null)}
-                      className="relative"
-                    >
-                      <Link
-                        href={item.href}
-                        className={`flex items-center ${isOpen || isMobile ? "px-3" : "justify-center"} py-2.5 rounded-lg transition-colors relative group ${
-                          activeItem === item.id
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "text-foreground hover:bg-muted"
-                        }`}
-                        onClick={() => {
-                          setActiveItem(item.id)
-                          if (isMobile) setIsOpen(false)
-                        }}
+                  {adminNavItems
+                    .filter(item => !item.adminOnly || isAdmin)
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        onMouseEnter={() => setIsHovering(item.id)}
+                        onMouseLeave={() => setIsHovering(null)}
+                        className="relative"
                       >
-                        <span className={`${isOpen || isMobile ? "mr-3" : ""} flex-shrink-0`}>{item.icon}</span>
-                        {(isOpen || isMobile) && <span className="whitespace-nowrap">{item.label}</span>}
-                        {activeItem === item.id && (
-                          <motion.div
-                            layoutId="activeIndicator"
-                            className="absolute left-0 w-1 h-6 bg-primary rounded-r-full"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.2 }}
-                          />
-                        )}
-                      </Link>
+                        <Link
+                          href={item.href}
+                          className={`flex items-center ${isOpen || isMobile ? "px-3" : "justify-center"} py-2.5 rounded-lg transition-colors relative group ${
+                            activeItem === item.id
+                              ? "bg-primary/10 text-primary font-medium"
+                              : "text-foreground hover:bg-muted"
+                          }`}
+                          onClick={() => {
+                            setActiveItem(item.id)
+                            if (isMobile) setIsOpen(false)
+                          }}
+                        >
+                          <span className={`${isOpen || isMobile ? "mr-3" : ""} flex-shrink-0`}>{item.icon}</span>
+                          {(isOpen || isMobile) && <span className="whitespace-nowrap">{item.label}</span>}
+                          {activeItem === item.id && (
+                            <motion.div
+                              layoutId="activeIndicator"
+                              className="absolute left-0 w-1 h-6 bg-primary rounded-r-full"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ duration: 0.2 }}
+                            />
+                          )}
+                        </Link>
 
-                      {/* Tooltip for collapsed mode */}
-                      {!isOpen && !isMobile && isHovering === item.id && (
-                        <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 bg-foreground text-background text-xs py-1 px-2 rounded shadow-lg z-50 whitespace-nowrap">
-                          {item.label}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                        {!isOpen && !isMobile && isHovering === item.id && (
+                          <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 bg-foreground text-background text-xs py-1 px-2 rounded shadow-lg z-50 whitespace-nowrap">
+                            {item.label}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                 </nav>
               </>
             )}
 
             {(isOpen || isMobile) && (
               <div className="mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
-                Account
+                Settings
               </div>
             )}
             <nav className="space-y-1">
@@ -340,7 +325,6 @@ export function DashboardSidebar({ isOpen, setIsOpen }: DashboardSidebarProps) {
                     {(isOpen || isMobile) && <span className="whitespace-nowrap">{item.label}</span>}
                   </Link>
 
-                  {/* Tooltip for collapsed mode */}
                   {!isOpen && !isMobile && isHovering === item.id && (
                     <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 bg-foreground text-background text-xs py-1 px-2 rounded shadow-lg z-50 whitespace-nowrap">
                       {item.label}
@@ -351,31 +335,6 @@ export function DashboardSidebar({ isOpen, setIsOpen }: DashboardSidebarProps) {
             </nav>
           </div>
 
-          {/* User Profile */}
-          <div className="p-4 border-t border-primary/10">
-            <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3 flex-shrink-0">
-                <User className="w-5 h-5 text-primary" />
-              </div>
-              {(isOpen || isMobile) && (
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{profile?.name || "Loading..."}</div>
-                  <div className="text-xs text-muted-foreground truncate">
-                    {profile?.email || user?.email || "Loading..."}
-                  </div>
-                </div>
-              )}
-              <motion.button
-                className="p-1.5 rounded-md hover:bg-muted transition-colors flex-shrink-0"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <LogOut className="w-4 h-4 text-muted-foreground" />
-              </motion.button>
-            </div>
-          </div>
-
-          {/* Expand button at bottom for collapsed mode */}
           {!isMobile && !isOpen && (
             <div className="p-2 border-t border-primary/10 flex justify-center">
               <motion.button

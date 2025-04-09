@@ -78,14 +78,11 @@ export function JobDetailsSheet({
 
   if (!job) return null
 
-  // Check if the current user is the creator of the job
   const isJobCreator = currentUserId && job.metadata && job.metadata.created_by_id === currentUserId
 
-  // Calculate application progress percentage
   const totalApplications = job.total_applications || 0
   const applicationProgress = totalApplications > 0 ? Math.round((job.shortlisted / totalApplications) * 100) : 0
 
-  // Check if we have application data to display
   const hasApplicationData = totalApplications > 0
 
   const handleAssignJob = async () => {
@@ -93,15 +90,13 @@ export function JobDetailsSheet({
 
     setIsAssigning(true)
     try {
-      // Use API client to assign the job to the current user
-      await apiClient.jobs.assignRecruiters(job.job_id, [currentUserId]);
+      await apiClient.jobs.assignRecruiters(job.job_id, [currentUserId])
 
       toast({
         title: "Success",
         description: "Job assigned successfully!",
       })
 
-      // Update the job in the parent component
       const updatedJob = {
         ...job,
         assigned_recruiters: [...(job.assigned_recruiters || []), currentUserId],
@@ -139,7 +134,6 @@ export function JobDetailsSheet({
           console.error("Error sharing:", err)
         })
     } else {
-      // Fallback for browsers that don't support navigator.share
       navigator.clipboard.writeText(window.location.href)
       toast({
         title: "Link copied",
@@ -153,8 +147,7 @@ export function JobDetailsSheet({
 
     setIsDeleting(true)
     try {
-      // Delete the job using the API client
-      await apiClient.jobs.delete(job.job_id);
+      await apiClient.jobs.delete(job.job_id)
 
       toast({
         title: "Success",
@@ -193,27 +186,37 @@ export function JobDetailsSheet({
   return (
     <>
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
-          <div className="sticky top-0 z-10 bg-background border-b">
-            <div className="p-6">
-              <SheetHeader className="mb-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-primary/10 p-2 rounded-md">
-                      <Briefcase className="h-6 w-6 text-primary" />
+        <SheetContent className="w-full sm:max-w-2xl p-0 overflow-y-auto">
+          <div className="sticky top-0 z-10 bg-background border-b shadow-sm">
+            <div className="p-6 pb-4">
+              <SheetHeader className="mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 p-2.5 rounded-md">
+                      <Briefcase className="h-5 w-5 text-primary" />
                     </div>
-                    <SheetTitle className="text-2xl font-bold">{job.title}</SheetTitle>
+                    <SheetTitle className="text-2xl font-bold tracking-tight">{job.title}</SheetTitle>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={job.status === "active" ? "default" : "destructive"} className="ml-2">
-                      {job.status === "active" ? (
-                        <CheckCircle className="w-3.5 h-3.5 mr-1" />
-                      ) : (
-                        <XCircle className="w-3.5 h-3.5 mr-1" />
-                      )}
-                      {job.status}
-                    </Badge>
-
+                  <Badge 
+                    variant={job.status === "active" ? "default" : "destructive"} 
+                    className="ml-2 self-start sm:self-auto px-2.5 py-1 text-xs font-medium rounded-full"
+                  >
+                    {job.status === "active" ? (
+                      <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
+                    ) : (
+                      <XCircle className="w-3.5 h-3.5 mr-1.5" />
+                    )}
+                    {job.status}
+                  </Badge>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3">
+                  <SheetDescription className="flex items-center text-base">
+                    <Building className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <span className="font-medium text-foreground/80">{job.company}</span>
+                  </SheetDescription>
+                  
+                  <div className="flex items-center gap-1 mt-2 sm:mt-0">
                     {isJobCreator && (
                       <TooltipProvider>
                         <Tooltip>
@@ -221,13 +224,13 @@ export function JobDetailsSheet({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8"
+                              className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 setShowDeleteDialog(true)
                               }}
                             >
-                              <Trash2 className="h-4 w-4 text-destructive" />
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>Delete job</TooltipContent>
@@ -242,7 +245,7 @@ export function JobDetailsSheet({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8"
+                              className="h-8 w-8 rounded-full hover:bg-primary/10"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 navigateToEditJob()
@@ -255,27 +258,20 @@ export function JobDetailsSheet({
                         </Tooltip>
                       </TooltipProvider>
                     )}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <SheetDescription className="flex items-center text-base">
-                    <Building className="w-4 h-4 mr-2" />
-                    {job.company}
-                  </SheetDescription>
-                  <div className="flex items-center gap-2">
+                    
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-8 w-8 rounded-full hover:bg-primary/10"
                             onClick={(e) => {
                               e.stopPropagation()
                               toggleBookmark()
                             }}
                           >
-                            <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-primary text-primary" : ""}`} />
+                            <Bookmark className={`h-4 w-4 transition-colors ${isBookmarked ? "fill-primary text-primary" : ""}`} />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>{isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}</TooltipContent>
@@ -288,7 +284,7 @@ export function JobDetailsSheet({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-8 w-8 rounded-full hover:bg-primary/10"
                             onClick={(e) => {
                               e.stopPropagation()
                               shareJob()
@@ -304,11 +300,11 @@ export function JobDetailsSheet({
                 </div>
               </SheetHeader>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 bg-muted/30 p-3 rounded-lg">
                 {job.location && (
                   <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground">Location</span>
-                    <span className="text-sm font-medium flex items-center mt-1">
+                    <span className="text-xs text-muted-foreground mb-1">Location</span>
+                    <span className="text-sm font-medium flex items-center">
                       <MapPin className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
                       {job.location}
                     </span>
@@ -316,8 +312,8 @@ export function JobDetailsSheet({
                 )}
                 {job.employment_type && (
                   <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground">Job Type</span>
-                    <span className="text-sm font-medium flex items-center mt-1">
+                    <span className="text-xs text-muted-foreground mb-1">Job Type</span>
+                    <span className="text-sm font-medium flex items-center">
                       <Briefcase className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
                       {job.employment_type}
                     </span>
@@ -325,8 +321,8 @@ export function JobDetailsSheet({
                 )}
                 {job.experience_required && (
                   <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground">Experience</span>
-                    <span className="text-sm font-medium flex items-center mt-1">
+                    <span className="text-xs text-muted-foreground mb-1">Experience</span>
+                    <span className="text-sm font-medium flex items-center">
                       <Clock className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
                       {job.experience_required}
                     </span>
@@ -334,8 +330,8 @@ export function JobDetailsSheet({
                 )}
                 {job.salary_range && (
                   <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground">Salary</span>
-                    <span className="text-sm font-medium flex items-center mt-1">
+                    <span className="text-xs text-muted-foreground mb-1">Salary</span>
+                    <span className="text-sm font-medium flex items-center">
                       <DollarSign className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
                       {job.salary_range}
                     </span>
@@ -345,409 +341,347 @@ export function JobDetailsSheet({
             </div>
 
             <Tabs value={activeTab} className="w-full" onValueChange={setActiveTab}>
-              <TabsList className="w-full justify-start rounded-none border-b p-0 h-auto">
+              <TabsList className="w-full justify-start rounded-none border-b p-0 h-auto bg-transparent">
                 <TabsTrigger
                   value="overview"
-                  className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                  className="rounded-none border-b-2 border-transparent px-4 py-3 text-sm font-medium transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary"
                 >
                   Overview
                 </TabsTrigger>
                 <TabsTrigger
                   value="details"
-                  className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                  className="rounded-none border-b-2 border-transparent px-4 py-3 text-sm font-medium transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary"
                 >
                   Details
                 </TabsTrigger>
                 {hasApplicationData && (
                   <TabsTrigger
                     value="stats"
-                    className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                    className="rounded-none border-b-2 border-transparent px-4 py-3 text-sm font-medium transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary"
                   >
                     Stats
                   </TabsTrigger>
                 )}
               </TabsList>
-
-              <TabsContent value="overview" className="p-6 pt-4 space-y-6 m-0">
-                {/* Job Summary */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">Job Summary</h3>
-                    {job.deadline && (
-                      <Badge variant="outline" className="flex items-center gap-1">
-                        <CalendarIcon className="h-3 w-3" />
-                        Deadline: {job.deadline}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-muted-foreground whitespace-pre-wrap">{job.description}</p>
-                </div>
-
-                <Separator />
-
-                {/* Key Details - Only show if we have working hours or mode of work */}
-                {(job.working_hours || job.mode_of_work) && (
-                  <>
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Key Details</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {job.working_hours && (
-                          <div className="flex items-start gap-3">
-                            <div className="bg-muted/50 p-2 rounded-md">
-                              <ClockIcon className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">Working Hours</p>
-                              <p className="text-sm text-muted-foreground">{job.working_hours}</p>
-                            </div>
-                          </div>
-                        )}
-                        {job.mode_of_work && (
-                          <div className="flex items-start gap-3">
-                            <div className="bg-muted/50 p-2 rounded-md">
-                              <Globe className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">Work Mode</p>
-                              <p className="text-sm text-muted-foreground">{job.mode_of_work}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-
-                {/* Skills - Only show if we have skills */}
-                {job.skills_required && job.skills_required.length > 0 && (
-                  <>
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Required Skills</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {job.skills_required.map((skill, index) => (
-                          <Badge key={index} variant="secondary" className="px-3 py-1.5 rounded-full">
-                            {skill}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-
-                {job.nice_to_have_skills && job.nice_to_have_skills.length > 0 && (
-                  <>
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Nice to Have Skills</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {job.nice_to_have_skills.map((skill, index) => (
-                          <Badge key={index} variant="outline" className="px-3 py-1.5 rounded-full">
-                            {skill}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-
-                {/* Application Stats Summary - Only show if we have applications */}
-                {hasApplicationData && (
+            
+              <div className="job-content overflow-y-auto">
+                <TabsContent value="overview" className="p-6 pt-5 space-y-6 m-0">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">Application Progress</h3>
-                      <span className="text-sm text-muted-foreground">
-                        {job.shortlisted} of {totalApplications} applications
-                      </span>
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-primary" />
+                        Job Summary
+                      </h3>
+                      {job.deadline && (
+                        <Badge variant="outline" className="flex items-center gap-1 rounded-full">
+                          <CalendarIcon className="h-3 w-3" />
+                          Deadline: {job.deadline}
+                        </Badge>
+                      )}
                     </div>
-                    <div className="space-y-2">
-                      <Progress value={applicationProgress} className="h-2" />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>0%</span>
-                        <span>{applicationProgress}% shortlisted</span>
-                        <span>100%</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="details" className="p-6 pt-4 space-y-6 m-0">
-                {/* Requirements - Only show if we have requirements */}
-                {job.requirements && job.requirements.length > 0 && (
-                  <>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-primary" />
-                        <h3 className="text-lg font-semibold">Requirements</h3>
-                      </div>
-                      <ul className="space-y-2 pl-6">
-                        {job.requirements.map((req, index) => (
-                          <li key={index} className="text-muted-foreground list-disc">
-                            {req}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-
-                {/* Key Responsibilities - Only show if we have responsibilities */}
-                {job.key_responsibilities && job.key_responsibilities.length > 0 && (
-                  <>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Layers className="h-5 w-5 text-primary" />
-                        <h3 className="text-lg font-semibold">Key Responsibilities</h3>
-                      </div>
-                      <ul className="space-y-2 pl-6">
-                        {job.key_responsibilities.map((resp, index) => (
-                          <li key={index} className="text-muted-foreground list-disc">
-                            {resp}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-
-                {/* Benefits - Only show if we have benefits */}
-                {job.benefits && job.benefits.length > 0 && (
-                  <>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Award className="h-5 w-5 text-primary" />
-                        <h3 className="text-lg font-semibold">Benefits</h3>
-                      </div>
-                      <ul className="space-y-2 pl-6">
-                        {job.benefits.map((benefit, index) => (
-                          <li key={index} className="text-muted-foreground list-disc">
-                            {benefit}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-
-                {/* About Company - Only show if we have company info */}
-                {job.about_company && (
-                  <>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Building className="h-5 w-5 text-primary" />
-                        <h3 className="text-lg font-semibold">About the Company</h3>
-                      </div>
-                      <p className="text-muted-foreground whitespace-pre-wrap">{job.about_company}</p>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-
-                {/* Posted Information */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <CalendarIcon className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-semibold">Job Information</h3>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {job.metadata?.created_by && (
-                      <div>
-                        <p className="text-sm font-medium">Posted by</p>
-                        <p className="text-sm text-muted-foreground">{job.metadata.created_by}</p>
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-sm font-medium">Posted on</p>
-                      <p className="text-sm text-muted-foreground">{format(job.created_at, "PPP")}</p>
-                    </div>
-                    {job.metadata?.last_modified_by && (
-                      <div>
-                        <p className="text-sm font-medium">Last modified by</p>
-                        <p className="text-sm text-muted-foreground">{job.metadata.last_modified_by}</p>
-                      </div>
-                    )}
-                    {job.deadline && (
-                      <div>
-                        <p className="text-sm font-medium">Application Deadline</p>
-                        <p className="text-sm text-muted-foreground">{job.deadline}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </TabsContent>
-
-              {/* Stats tab - Only show if we have application data */}
-              {hasApplicationData && (
-                <TabsContent value="stats" className="p-6 pt-4 space-y-6 m-0">
-                  {/* Application Stats */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <BarChart4 className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-semibold">Application Statistics</h3>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Card className="border-none shadow-none bg-muted/30">
-                        <CardContent className="p-4 flex flex-col items-center justify-center">
-                          <Users className="h-8 w-8 text-muted-foreground mb-2" />
-                          <p className="text-3xl font-bold">{job.total_applications || 0}</p>
-                          <p className="text-sm text-muted-foreground">Total Applications</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="border-none shadow-none bg-green-50 dark:bg-green-950/30">
-                        <CardContent className="p-4 flex flex-col items-center justify-center">
-                          <CheckCircle className="h-8 w-8 text-green-500 mb-2" />
-                          <p className="text-3xl font-bold text-green-700 dark:text-green-400">
-                            {job.shortlisted || 0}
-                          </p>
-                          <p className="text-sm text-green-700 dark:text-green-400">Shortlisted</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="border-none shadow-none bg-yellow-50 dark:bg-yellow-950/30">
-                        <CardContent className="p-4 flex flex-col items-center justify-center">
-                          <AlertCircle className="h-8 w-8 text-yellow-500 mb-2" />
-                          <p className="text-3xl font-bold text-yellow-700 dark:text-yellow-400">
-                            {job.in_progress || 0}
-                          </p>
-                          <p className="text-sm text-yellow-700 dark:text-yellow-400">In Progress</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="border-none shadow-none bg-red-50 dark:bg-red-950/30">
-                        <CardContent className="p-4 flex flex-col items-center justify-center">
-                          <XCircle className="h-8 w-8 text-red-500 mb-2" />
-                          <p className="text-3xl font-bold text-red-700 dark:text-red-400">{job.rejected || 0}</p>
-                          <p className="text-sm text-red-700 dark:text-red-400">Rejected</p>
-                        </CardContent>
-                      </Card>
-                    </div>
+                    <p className="text-muted-foreground whitespace-pre-wrap text-sm leading-relaxed">{job.description}</p>
                   </div>
 
-                  <Separator />
+                  <Separator className="my-6" />
 
-                  {/* View Candidates Button */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-semibold">Candidate Management</h3>
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="w-full flex items-center justify-center gap-2"
-                      onClick={navigateToCandidates}
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      View All Candidates for This Job
-                    </Button>
-                  </div>
-
-                  <Separator />
-
-                  {/* Application Progress */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-semibold">Application Progress</h3>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm font-medium">Shortlisted</span>
-                          <span className="text-sm text-muted-foreground">
-                            {totalApplications > 0 ? Math.round((job.shortlisted / totalApplications) * 100) : 0}%
-                          </span>
-                        </div>
-                        <Progress
-                          value={totalApplications > 0 ? (job.shortlisted / totalApplications) * 100 : 0}
-                          className="h-2"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm font-medium">In Progress</span>
-                          <span className="text-sm text-muted-foreground">
-                            {totalApplications > 0 ? Math.round((job.in_progress / totalApplications) * 100) : 0}%
-                          </span>
-                        </div>
-                        <Progress
-                          value={totalApplications > 0 ? (job.in_progress / totalApplications) * 100 : 0}
-                          className="h-2"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm font-medium">Rejected</span>
-                          <span className="text-sm text-muted-foreground">
-                            {totalApplications > 0 ? Math.round((job.rejected / totalApplications) * 100) : 0}%
-                          </span>
-                        </div>
-                        <Progress
-                          value={totalApplications > 0 ? (job.rejected / totalApplications) * 100 : 0}
-                          className="h-2"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Assignment Status */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Zap className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-semibold">Assignment Status</h3>
-                    </div>
-                    <Card className="border-none shadow-none bg-muted/30">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium">Current Status</p>
-                            <p className="text-sm text-muted-foreground">
-                              {job.assigned_recruiters?.includes(currentUserId || "")
-                                ? "Assigned to you"
-                                : job.assigned_recruiters?.length
-                                  ? `Assigned to ${job.assigned_recruiters.length} recruiter(s)`
-                                  : "Not assigned"}
-                            </p>
-                          </div>
-                          {job.assigned_recruiters?.length ? (
-                            <div className="flex -space-x-2">
-                              {job.assigned_recruiters.slice(0, 3).map((_, i) => (
-                                <Avatar key={i} className="border-2 border-background h-8 w-8">
-                                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                                    R{i + 1}
-                                  </AvatarFallback>
-                                </Avatar>
-                              ))}
-                              {job.assigned_recruiters.length > 3 && (
-                                <Avatar className="border-2 border-background h-8 w-8">
-                                  <AvatarFallback className="bg-muted text-muted-foreground text-xs">
-                                    +{job.assigned_recruiters.length - 3}
-                                  </AvatarFallback>
-                                </Avatar>
-                              )}
+                  {(job.working_hours || job.mode_of_work) && (
+                    <>
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          <Layers className="h-4 w-4 text-primary" />
+                          Key Details
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {job.working_hours && (
+                            <div className="flex items-start gap-3 bg-muted/30 p-3 rounded-lg">
+                              <div className="bg-background p-2 rounded-md">
+                                <ClockIcon className="h-4 w-4 text-primary" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">Working Hours</p>
+                                <p className="text-sm text-muted-foreground">{job.working_hours}</p>
+                              </div>
                             </div>
-                          ) : null}
+                          )}
+                          {job.mode_of_work && (
+                            <div className="flex items-start gap-3 bg-muted/30 p-3 rounded-lg">
+                              <div className="bg-background p-2 rounded-md">
+                                <Globe className="h-4 w-4 text-primary" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">Work Mode</p>
+                                <p className="text-sm text-muted-foreground">{job.mode_of_work}</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </CardContent>
-                    </Card>
-                  </div>
+                      </div>
+                      <Separator className="my-6" />
+                    </>
+                  )}
+
+                  {job.skills_required && job.skills_required.length > 0 && (
+                    <>
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          <Zap className="h-4 w-4 text-primary" />
+                          Required Skills
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {job.skills_required.map((skill, index) => (
+                            <Badge 
+                              key={index} 
+                              variant="secondary" 
+                              className="px-2.5 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary border-none"
+                            >
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <Separator className="my-6" />
+                    </>
+                  )}
+
+                  {job.nice_to_have_skills && job.nice_to_have_skills.length > 0 && (
+                    <>
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-primary" />
+                          Nice to Have Skills
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {job.nice_to_have_skills.map((skill, index) => (
+                            <Badge 
+                              key={index} 
+                              variant="outline" 
+                              className="px-2.5 py-1 text-xs font-medium rounded-full border-dashed"
+                            >
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <Separator className="my-6" />
+                    </>
+                  )}
+
+                  {hasApplicationData && (
+                    <div className="space-y-4 bg-muted/20 p-4 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          <BarChart4 className="h-4 w-4 text-primary" />
+                          Application Progress
+                        </h3>
+                        <span className="text-sm font-medium bg-muted/50 px-2.5 py-1 rounded-full">
+                          {job.shortlisted} of {totalApplications} applications
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        <Progress value={applicationProgress} className="h-2 bg-muted" />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>0%</span>
+                          <span className="text-primary font-medium">{applicationProgress}% shortlisted</span>
+                          <span>100%</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </TabsContent>
-              )}
+
+                <TabsContent value="details" className="p-6 pt-5 space-y-6 m-0">
+                  {job.requirements && job.requirements.length > 0 && (
+                    <>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-5 w-5 text-primary" />
+                          <h3 className="text-lg font-semibold">Requirements</h3>
+                        </div>
+                        <ul className="space-y-2 pl-6 text-sm">
+                          {job.requirements.map((req, index) => (
+                            <li key={index} className="text-muted-foreground list-disc leading-relaxed">
+                              {req}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <Separator className="my-6" />
+                    </>
+                  )}
+                </TabsContent>
+
+                {hasApplicationData && (
+                  <TabsContent value="stats" className="p-6 pt-5 space-y-6 m-0">
+                    <div className="space-y-5">
+                      <div className="flex items-center gap-2">
+                        <BarChart4 className="h-5 w-5 text-primary" />
+                        <h3 className="text-lg font-semibold">Application Statistics</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <Card className="border shadow-sm bg-background hover:shadow-md transition-shadow duration-200">
+                          <CardContent className="p-4 flex flex-col items-center justify-center">
+                            <Users className="h-8 w-8 text-primary/80 mb-2" />
+                            <p className="text-3xl font-bold">{job.total_applications || 0}</p>
+                            <p className="text-sm text-muted-foreground">Total Applications</p>
+                          </CardContent>
+                        </Card>
+                        <Card className="border shadow-sm bg-background hover:shadow-md transition-shadow duration-200">
+                          <CardContent className="p-4 flex flex-col items-center justify-center">
+                            <CheckCircle className="h-8 w-8 text-green-500 mb-2" />
+                            <p className="text-3xl font-bold text-green-600 dark:text-green-500">
+                              {job.shortlisted || 0}
+                            </p>
+                            <p className="text-sm text-green-600 dark:text-green-500">Shortlisted</p>
+                          </CardContent>
+                        </Card>
+                        <Card className="border shadow-sm bg-background hover:shadow-md transition-shadow duration-200">
+                          <CardContent className="p-4 flex flex-col items-center justify-center">
+                            <AlertCircle className="h-8 w-8 text-amber-500 mb-2" />
+                            <p className="text-3xl font-bold text-amber-600 dark:text-amber-500">
+                              {job.in_progress || 0}
+                            </p>
+                            <p className="text-sm text-amber-600 dark:text-amber-500">In Progress</p>
+                          </CardContent>
+                        </Card>
+                        <Card className="border shadow-sm bg-background hover:shadow-md transition-shadow duration-200">
+                          <CardContent className="p-4 flex flex-col items-center justify-center">
+                            <XCircle className="h-8 w-8 text-red-500 mb-2" />
+                            <p className="text-3xl font-bold text-red-600 dark:text-red-500">{job.rejected || 0}</p>
+                            <p className="text-sm text-red-600 dark:text-red-500">Rejected</p>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
+
+                    <Separator className="my-6" />
+
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-5 w-5 text-primary" />
+                        <h3 className="text-lg font-semibold">Candidate Management</h3>
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="w-full flex items-center justify-center gap-2 py-5 border-dashed hover:border-primary hover:text-primary transition-colors"
+                        onClick={navigateToCandidates}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        View All Candidates for This Job
+                      </Button>
+                    </div>
+
+                    <Separator className="my-6" />
+
+                    <div className="space-y-5">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                        <h3 className="text-lg font-semibold">Application Progress</h3>
+                      </div>
+                      <div className="space-y-5">
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium flex items-center gap-1.5">
+                              <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                              Shortlisted
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {totalApplications > 0 ? Math.round((job.shortlisted / totalApplications) * 100) : 0}%
+                            </span>
+                          </div>
+                          <Progress
+                            value={totalApplications > 0 ? (job.shortlisted / totalApplications) * 100 : 0}
+                            className="h-2 bg-muted"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium flex items-center gap-1.5">
+                              <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                              In Progress
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {totalApplications > 0 ? Math.round((job.in_progress / totalApplications) * 100) : 0}%
+                            </span>
+                          </div>
+                          <Progress
+                            value={totalApplications > 0 ? (job.in_progress / totalApplications) * 100 : 0}
+                            className="h-2 bg-muted"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium flex items-center gap-1.5">
+                              <XCircle className="h-3.5 w-3.5 text-red-500" />
+                              Rejected
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {totalApplications > 0 ? Math.round((job.rejected / totalApplications) * 100) : 0}%
+                            </span>
+                          </div>
+                          <Progress
+                            value={totalApplications > 0 ? (job.rejected / totalApplications) * 100 : 0}
+                            className="h-2 bg-muted"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator className="my-6" />
+
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Zap className="h-5 w-5 text-primary" />
+                        <h3 className="text-lg font-semibold">Assignment Status</h3>
+                      </div>
+                      <Card className="border border-muted shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <CardContent className="p-5">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium">Current Status</p>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {job.assigned_recruiters?.includes(currentUserId || "")
+                                  ? "Assigned to you"
+                                  : job.assigned_recruiters?.length
+                                    ? `Assigned to ${job.assigned_recruiters.length} recruiter(s)`
+                                    : "Not assigned"}
+                              </p>
+                            </div>
+                            {job.assigned_recruiters?.length ? (
+                              <div className="flex -space-x-2">
+                                {job.assigned_recruiters.slice(0, 3).map((_, i) => (
+                                  <Avatar key={i} className="border-2 border-background h-8 w-8">
+                                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                                      R{i + 1}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                ))}
+                                {job.assigned_recruiters.length > 3 && (
+                                  <Avatar className="border-2 border-background h-8 w-8">
+                                    <AvatarFallback className="bg-muted text-muted-foreground text-xs">
+                                      +{job.assigned_recruiters.length - 3}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                )}
+                              </div>
+                            ) : null}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+                )}
+              </div>
             </Tabs>
           </div>
 
-          <div className="sticky bottom-0 bg-background border-t p-4 flex justify-between gap-4 mt-auto">
+          <div className="sticky bottom-0 bg-background border-t p-4 flex flex-col sm:flex-row justify-between gap-4 mt-auto">
             <ShowRelevantCandidatesButton jobId={job.job_id} />
             <Button
               onClick={handleAssignJob}
               disabled={isAssigning || (job.assigned_recruiters || []).includes(currentUserId || "")}
-              className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/80"
+              className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300 shadow-sm"
             >
               {isAssigning ? (
                 <>
@@ -764,18 +698,17 @@ export function JobDetailsSheet({
         </SheetContent>
       </Sheet>
 
-      {/* Delete confirmation dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-xl">Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               This action cannot be undone. This will permanently delete the job posting and remove all associated data
               from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="gap-2 mt-2">
+            <AlertDialogCancel disabled={isDeleting} className="mt-0">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault()
